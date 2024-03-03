@@ -3,6 +3,8 @@
 Created on Sun Feb 18 16:33:56 2024
 
 @author: chral
+
+currently unfinished
 """
 
 import telnetlib as telnet
@@ -32,22 +34,19 @@ PORT = 6775
 
 command = get_command_string(values)
 
-# =============================================================================
-# # telnet unfinished test response request (Kasper has made a longer one that works)
-# tn = telnet.Telnet(HOST, PORT)
-# print(tn.read_until(b'Horizons>'))
-# tn.write(b';\n')
-# print(tn.read_until(b':'))
-# tn.write(b'EPOCH= 2460329.5 EC= .375492882708177 QR= .8346468735827693 TP= 2460377.6797868409 OM= 300.1183759806364 W= 243.6585063469079 IN= 7.293072730272614 H= 32.741 G= .150')
-# print(tn.read_until(b':'))
-# tn.write(b'\r\n')
-# print(tn.read_until(b':'))
-# tn.write(b'J200\n')
-# print(tn.read_until(b':'))
-# tn.write(b'BOB\n')
-# print(tn.read_all())
-# 
-# =============================================================================
+# telnet unfinished test request (Kasper has made a longer one that works)
+tn = telnet.Telnet(HOST, PORT)
+print(tn.read_until(b'Horizons>'))
+tn.write(b';\n')
+print(tn.read_until(b':'))
+tn.write(b'EPOCH= 2460329.5 EC= .375492882708177 QR= .8346468735827693 TP= 2460377.6797868409 OM= 300.1183759806364 W= 243.6585063469079 IN= 7.293072730272614 H= 32.741 G= .150')
+print(tn.read_until(b':'))
+tn.write(b'\r\n')
+print(tn.read_until(b':'))
+tn.write(b'J200\n')
+print(tn.read_until(b':'))
+tn.write(b'BOB\n')
+print(tn.read_all())
 tn.close()
 
 
