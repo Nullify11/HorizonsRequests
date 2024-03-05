@@ -22,7 +22,7 @@ import itertools
     file.close()
     orbit_stats.pop(-1)"""
 
-startTime = time.time()
+#startTime = time.time()
 
 def payload_dict(H, A, EC, In, MA, OM, W, Epoch=2460310.5, G=0.15):
     payload = {
@@ -96,6 +96,6 @@ def payload_generator(txtname):
 
 #get_orbital_stats("output_file-2")
 #print(get_orbital_stats("output_file-2"))
-payload_generator("output_file_1000000")
+#payload_generator("output_file_1000000")
 
-print(f"\nScript took {time.time() - startTime} seconds to run.")  # print elapsed time
+#print(f"\nScript took {time.time() - startTime} seconds to run.")  # print elapsed time

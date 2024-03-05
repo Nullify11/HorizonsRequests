@@ -1,3 +1,8 @@
+"""
+@author: Kasper
+Filters responses from JPL Horizons
+"""
+
 import numpy as np
 
 #"Earth  "+str(8.5269*10**(-4)+tolerance)
