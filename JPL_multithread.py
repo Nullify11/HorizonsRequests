@@ -7,9 +7,17 @@ Created on Thu Feb 29 18:08:03 2024
 
 import time
 import requests
-import random as rand
 from concurrent.futures import ThreadPoolExecutor
 import payload_Gen as pg
+
+
+# Files to keep track of which payloads came through succesfully and which do not.
+with open("success_response.txt","w") as f:
+    pass
+with open("errors_response.txt","w") as f:
+    pass
+with open("total_errors.txt","w") as f:
+    pass
 
 setup = {
     "format": "text",
@@ -29,14 +37,6 @@ setup = {
     #"QUANTITIES": "'1,9'",    #20,23,24,29'",  Only relevant for observer EPHEM_TYPE
 }
 
-
-def generate_payload(payload):
-    """
-    Generates a payload with a new eccentricity based on an existing payload
-    """
-    payload['EC'] = "'" + str(rand.uniform(0, 1)) + "'"
-    return payload
-
 def get_response(payload):
     """
     Sends an API request to JPL horizons and saves the response as a text file
@@ -53,28 +53,89 @@ def get_response(payload):
 
     """
     response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payload[0])
-    file_path = f"response{payload[1]}.txt"
+    
+    # All correct data starts by listing the API version, so we check if gives this response.
+    # If it does, we write the text out as usual and add the indicator to a .txt document
+    # to keep track of which payloads came through succesfully. If the API version is not listed
+    # we do not write the file, but instead write the indicator in another file.
+    
+    if "API VERSION" in response.text[:11]:
+        file_path = f"response{payload[1]}.txt"
+        with open(file_path, "w") as outfile:
+            outfile.write(response.text)
+        with open("success_response.txt", "a") as file:
+            file.write(f"{payload[1]} ")
+    else:
+        with open("errors_response.txt", "a") as file:
+            file.write(f"{payload[1]} ")
+            print(f"no {payload[1]}")
 
-    with open(file_path, "w") as outfile:
-        outfile.write(response.text)
+def correct_errors(payloads):
+    """
+    Sends an API request to JPL horizons for all failed requests and saves the response as a text file
+    
+    Parameters
+    ----------
+    payloads : List
+        Payloads is a list of tuples which contains all the payloads and their identicators.
+        Each tuple contains the payload as its first element and
+        a unique identifier for its second element
 
+    Returns
+    -------
+    "All done!" when done
+    
+    """
+    error_i = []
+    # Creates an error_i list which is the list of all the failed requests
+    with open("errors_response.txt","r") as f:
+        while True:
+            content = f.readline().split()
+            error_i.append(content)
+            if not content:
+                break
+    
+    error_i = pg.flatten(error_i)
+    
+    # If the list is empty, all request went through succesfully
+    if not error_i:
+        return print("All done!")
+    # Removes an empty entry at the end of the list.
+    error_i.pop(-1)
+    
+    # Sends a new request, one at a time (i.e. the slow way), for all the errors.
+    # If any fails a the identicator is noted in total_erros.txt
+    for k in range(len(error_i)):
+        i = int(error_i[k])
+        response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payloads[i][0])
+        if "API VERSION" not in response.text[:11]:
+            with open("total_errors.txt","a") as file:
+                file.write(f"{payloads[i][1]} ")
+        else:
+            file_path = f"response{payloads[i][1]}.txt"
+            with open(file_path, "w") as outfile:
+                outfile.write(response.text)
+        if not content:
+            break
+    return print("All done!")
 
 
 # specifies the number of requests to send
 num_requests = 10
 
 # specify the number of threads
-num_workers = 3
+num_workers = 6
 
 start_time = time.time()
 
-payloads = pg.payload_generator("output_file") #output_file is a sample file of ten payloads needed in the generator
+# output_file is a sample file of ten payloads needed in the generator
+payloads = pg.payload_generator("output_file") 
 
 with ThreadPoolExecutor(max_workers=num_workers) as executor:
     executor.map(get_response, [payloads[i] for i in range(num_requests)])
 
-#for i in range(10):
-#    print("https://ssd.jpl.nasa.gov/api/horizons.api", f"?{setup | payloads[i][0]}")
+# corrects any errors by taking one at a time.
+correct_errors(payloads)
 
 end_time = time.time()
 elapsed_time = end_time - start_time

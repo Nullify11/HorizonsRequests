@@ -91,6 +91,12 @@ def payload_generator(txtname):
         payload_list.append(tuple([payload_dict(*orbit_stats[i])])+(i,))
     #Generates a list of tuples, where the tuples have a length 2.
     #The first entry in the tuple is the payload dictionay and the second is an indicator number.
+    
+    #Writes the generated payloads list. Just in case :)
+    with open("payloads.txt","w") as f:
+        for line in payload_list:
+            f.write(f"{line}\n")
+    
     return payload_list
 
 
