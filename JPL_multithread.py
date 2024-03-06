@@ -10,7 +10,6 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 import payload_Gen as pg
 
-
 # Files to keep track of which payloads came through succesfully and which do not.
 with open("success_response.txt","w") as f:
     pass
@@ -69,7 +68,7 @@ def get_response(payload):
         with open("errors_response.txt", "a") as file:
             file.write(f"{payload[1]} ")
 
-def correct_errors(payloads):
+def correct_errors(retry,payloads):
     """
     Sends an API request to JPL horizons for all failed requests and saves the response as a text file
     
@@ -85,27 +84,27 @@ def correct_errors(payloads):
     "All done!" when done
     
     """
-    error_i = []
+    #error_i = []
     # Creates an error_i list which is the list of all the failed requests
-    with open("errors_response.txt","r") as f:
-        while True:
-            content = f.readline().split()
-            error_i.append(content)
-            if not content:
-                break
+    #with open("errors_response.txt","r") as f:
+    #    while True:
+    #        content = f.readline().split()
+    #        error_i.append(content)
+    #        if not content:
+    #            break
 
-    error_i = pg.flatten(error_i)
+    #error_i = pg.flatten(error_i)
     
     # If the list is empty, all request went through succesfully
-    if not error_i:
-        return print("All done!")
+    #if not error_i:
+    #    return print("All done!")
     # Removes an empty entry at the end of the list.
-    error_i.pop(-1)
+    #error_i.pop(-1)
     
     # Sends a new request, one at a time (i.e. the slow way), for all the errors.
     # If any fails a the identicator is noted in total_erros.txt
     
-    for k in error_i:
+    for k in retry:
         i = int(k) #int(error_i[k])
         response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payloads[i][0])
         if "API VERSION" not in response.text[:11]:
@@ -116,26 +115,71 @@ def correct_errors(payloads):
             file_path = f"response{payloads[i][1]}.txt"
             with open(file_path, "w") as outfile:
                 outfile.write(response.text)
-            print("Non!",i)
+            #print("Non!",i)
     return print("All done!")
 
 
+
+def thread_forge(retry,num_workers,payloads):
+    #retry = [j for j in range(num_requests)]
+
+    
+    #with open("success_response.txt","r") as f:
+    #    content = f.readline().split()
+    #    j = 0
+    #    while True:
+    #        if j == len(content):
+    #            break
+    #        i = content[j]
+    #        retry.remove(int(i))
+    #        j += 1
+    
+    # If the list is empty, all request went through succesfully
+    #if not retry:
+    #    return print("All done!")
+    
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        executor.map(get_response, [payloads[i] for i in retry])
+
+def retry_requests(num_requests,num_workers,payloads,boundary):
+    retry = [j for j in range(num_requests)]
+
+    k=0
+    while len(retry) > boundary:
+        k +=1
+        with open("success_response.txt","r") as f:
+            content = f.readline().split()
+            j = 0+num_requests-len(retry)
+            while True:
+                if j == len(content):
+                    break
+                i = content[j]
+                retry.remove(int(i))
+                j += 1
+        print(retry)
+        # If the list is empty, all request went through succesfully
+        if not retry:
+            return print("All done!")
+        thread_forge(retry,num_workers,payloads)
+    correct_errors(retry,payloads)
+
+
 # specifies the number of requests to send
-num_requests = 100
+#num_requests = 1000
 
 # specify the number of threads
-num_workers = 6
+#num_workers = 10
 
 start_time = time.time()
 
-# output_file is a sample file of ten payloads needed in the generator
-payloads = pg.payload_generator("output_file_100") 
+payloads = pg.payload_generator(f"output_file_100") 
 
-with ThreadPoolExecutor(max_workers=num_workers) as executor:
-    executor.map(get_response, [payloads[i] for i in range(num_requests)])
+retry_requests(100,6,payloads,10)
+
+print("Done with threads")
 
 # corrects any errors by taking one at a time.
-correct_errors(payloads)
+#correct_errors(payloads)
 
 end_time = time.time()
 elapsed_time = end_time - start_time
