@@ -68,7 +68,6 @@ def get_response(payload):
     else:
         with open("errors_response.txt", "a") as file:
             file.write(f"{payload[1]} ")
-            print(f"no {payload[1]}")
 
 def correct_errors(payloads):
     """
@@ -94,7 +93,7 @@ def correct_errors(payloads):
             error_i.append(content)
             if not content:
                 break
-    
+
     error_i = pg.flatten(error_i)
     
     # If the list is empty, all request went through succesfully
@@ -105,23 +104,24 @@ def correct_errors(payloads):
     
     # Sends a new request, one at a time (i.e. the slow way), for all the errors.
     # If any fails a the identicator is noted in total_erros.txt
-    for k in range(len(error_i)):
-        i = int(error_i[k])
+    
+    for k in error_i:
+        i = int(k) #int(error_i[k])
         response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payloads[i][0])
         if "API VERSION" not in response.text[:11]:
+            print("Oui!",i)
             with open("total_errors.txt","a") as file:
                 file.write(f"{payloads[i][1]} ")
         else:
             file_path = f"response{payloads[i][1]}.txt"
             with open(file_path, "w") as outfile:
                 outfile.write(response.text)
-        if not content:
-            break
+            print("Non!",i)
     return print("All done!")
 
 
 # specifies the number of requests to send
-num_requests = 10
+num_requests = 100
 
 # specify the number of threads
 num_workers = 6
@@ -129,7 +129,7 @@ num_workers = 6
 start_time = time.time()
 
 # output_file is a sample file of ten payloads needed in the generator
-payloads = pg.payload_generator("output_file") 
+payloads = pg.payload_generator("output_file_100") 
 
 with ThreadPoolExecutor(max_workers=num_workers) as executor:
     executor.map(get_response, [payloads[i] for i in range(num_requests)])
