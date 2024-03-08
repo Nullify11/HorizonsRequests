@@ -40,7 +40,7 @@ def filter(txtname,N,tolerance=1*10**(-4)):
         d[txtname+str(i)] = CAEarth(txtname+str(i),tolerance)
     return d
 
-print(sum(filter("response",100).values()))
+#print(sum(filter("response",1000).values())) # For testing
 
 
 
