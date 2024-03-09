@@ -77,6 +77,9 @@ def correct_errors(retry,payloads):
     
     Parameters
     ----------
+    retry : List
+        retry is a list of all the identicators must be run through JPL Horizons
+    
     payloads : List
         Payloads is a list of tuples which contains all the payloads and their identicators.
         Each tuple contains the payload as its first element and
@@ -92,7 +95,7 @@ def correct_errors(retry,payloads):
     # If any fails a the identicator is noted in total_erros.txt
     
     for k in retry:
-        i = int(k) #int(error_i[k])
+        i = int(k) #int(retry[k])
         response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payloads[i][0])
         # All valid responses start with the API version. If they fail the one-by-one we note them in total_errors
         if "API VERSION" not in response.text[:11]:
@@ -103,14 +106,73 @@ def correct_errors(retry,payloads):
             file_path = f"response{payloads[i][1]}.txt"
             with open(file_path, "w") as outfile:
                 outfile.write(response.text)
+            # Due to how python handles threads opening and closing succes_response
+            # most of the files writes correctly into the file. However, every once in a
+            # while it will fail to do so, so we check if it indeed is in the file, and
+            # if not we write it. Just be on the safe side, we run the response and write
+            # out the .txt file anyway.
+            with open("success_response.txt", "r+") as file:
+                if str(payloads[i][1]) in list(file.readline().split()):
+                    print(payloads[i][1],"Already in success_response")
+                else:
+                    file.write(f"{payloads[i][1]} ")
     return print("All done!")
 
 def thread_forge(retry,num_workers,payloads):
+    """
+    Handles the threads
+    
+    Parameters
+    ----------
+    retry : List
+        retry is a list of all the identicators must be run through JPL Horizons.
+    
+    num_workers : Int
+        The number of maximum threads at one time.
+    
+    payloads : List
+        Payloads is a list of tuples which contains all the payloads and their identicators.
+        Each tuple contains the payload as its first element and
+        a unique identifier for its second element.
+
+    Returns
+    -------
+    None
+    
+    """
    
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         executor.map(get_response, [payloads[i] for i in retry])
 
 def retry_requests(num_requests,num_workers,payloads,boundary):
+    """
+    A psedo-recursive function which runs the thread_forge function with the given retry
+    list, until the number of needed requests is reached or below a boundary value.
+    
+    Parameters
+    ----------
+    num_requests : Int
+        Number of requests the user wants. I.e. the number of simulated asteroids the user
+        will recieve.
+    
+    num_workers : Int
+        The number of maximum threads at one time.
+    
+    payloads : List
+        Payloads is a list of tuples which contains all the payloads and their identicators.
+        Each tuple contains the payload as its first element and
+        a unique identifier for its second element.
+    
+    boundary : Int or float
+        The number of missing requests for which the program will stop using threads and
+        "fill the holes" one by one.
+
+    Returns
+    -------
+    "All done!" if the list retry is empty
+    
+    """
+    
     retry = [j for j in range(num_requests)]
 
     k=0
@@ -119,19 +181,73 @@ def retry_requests(num_requests,num_workers,payloads,boundary):
         print("k:",k)
         with open("success_response.txt","r") as f:
             content = f.readline().split()
-            j = 0+num_requests-len(retry)
-            while True:
-                if j == len(content):
-                    break
-                i = content[j]
-                retry.remove(int(i))
-                j += 1
+        content = [int(i) for i in content]
+        retry = [item for item in retry if item not in content]
         # If the list is empty, all request went through succesfully
         if not retry:
             return print("All done!")
         thread_forge(retry,num_workers,payloads)
     print("Done with threads")
     correct_errors(retry,payloads)
+
+def magnus(num_requests, num_workers, payloads, boundary):
+    """
+    The server gives back approximately half of all requests sent with threads above three.
+    So, if one sends in more requests we may reach the intended number of requests faster.
+    
+    This function first runs 1.5 times the number of requests the user wants and continues,
+    after the first threading, by using the same structure as the retry_requests, just for
+    another retry list.
+    
+    Parameters
+    ----------
+    num_requests : Int
+        Number of requests the user wants. I.e. the number of simulated asteroids the user
+        will recieve.
+    
+    num_workers : Int
+        The number of maximum threads at one time.
+    
+    payloads : List
+        Payloads is a list of tuples which contains all the payloads and their identicators.
+        Each tuple contains the payload as its first element and
+        a unique identifier for its second element.
+    
+    boundary : Int or float
+        The number of missing requests for which the program will stop using threads and
+        "fill the holes" one by one.
+
+    Returns
+    -------
+    "All done!" if the list retry is empty
+    
+    """
+    idea = [i for i in range(int(num_requests*1.5))]
+    thread_forge(idea,num_workers,payloads)
+    
+    with open("success_response.txt","r") as f:
+        content = f.readline().split()
+        missing = num_requests-len(content)
+    print(f"Missing {missing} entries after first threading.")
+    if missing < 0:
+        return print("All done!")
+    with open("errors_response.txt","r") as f:
+        content = list(f.readline().split())
+        retry = [int(i) for i in content[:missing]]
+    k=0
+    while len(retry) > boundary:
+        k +=1
+        print("k:",k)
+        with open("success_response.txt","r") as f:
+            succes_content = list(f.readline().split())
+        succes_content = [int(i) for i in succes_content]
+        retry = [item for item in retry if item not in succes_content]
+        if not retry:
+            return print("All done!")
+        thread_forge(retry,num_workers,payloads)
+    print("Done with threads")
+    correct_errors(retry,payloads)
+
 
 
 ###################################################
