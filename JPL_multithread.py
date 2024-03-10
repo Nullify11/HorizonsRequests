@@ -9,7 +9,7 @@ import time
 import requests
 from concurrent.futures import ThreadPoolExecutor
 import payload_Gen as pg
-
+import os
 
 # Files to keep track of which payloads came through succesfully and which do not.
 with open("success_response.txt","w") as f:
@@ -120,23 +120,24 @@ def correct_errors(payloads):
     return print("All done!")
 
 
-# specifies the number of requests to send
-num_requests = 100
+def execute_tasks(num_requests, num_workers):
+    start_time = time.time()
 
-# specify the number of threads
-num_workers = 6
+    # output_file is a sample file of ten payloads needed in the generator
+    payloads = pg.payload_generator("output_file_100") 
 
-start_time = time.time()
+    with ThreadPoolExecutor(max_workers=num_workers) as executor:
+        executor.map(get_response, [payloads[i] for i in range(num_requests)])
 
-# output_file is a sample file of ten payloads needed in the generator
-payloads = pg.payload_generator("output_file_100") 
+    # corrects any errors by taking one at a time.
+    correct_errors(payloads)
 
-with ThreadPoolExecutor(max_workers=num_workers) as executor:
-    executor.map(get_response, [payloads[i] for i in range(num_requests)])
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f'Elapsed Time: {elapsed_time}')
 
-# corrects any errors by taking one at a time.
-correct_errors(payloads)
 
-end_time = time.time()
-elapsed_time = end_time - start_time
-print(f'Elapsed Time: {elapsed_time}')
+def create_responses_dir():
+    path = 'responses'
+    if not os.path.exists(path):
+        os.makedirs(path)

@@ -100,6 +100,18 @@ def payload_generator(txtname):
     return payload_list
 
 
+def pay_gen_lock(txtname, lock):
+    """
+    Returns a list of payloads similar to that of payload_generator but with a lock instance appended to each tuple
+    """
+    payloads = payload_generator(txtname)
+    lock_payloads = []
+    for p in payloads:
+        lock_payload = p + (lock,)
+        lock_payloads.append(lock_payload)
+    return lock_payloads
+
+
 #get_orbital_stats("output_file-2")
 #print(get_orbital_stats("output_file-2"))
 #payload_generator("output_file_1000000")
