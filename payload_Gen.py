@@ -6,6 +6,7 @@ import numpy as np
 import time
 import itertools
 
+##### Old code, might be useful?
 """file = open(txtname+".txt", "r")
     i=0
     while True:
@@ -21,10 +22,42 @@ import itertools
         i+=1
     file.close()
     orbit_stats.pop(-1)"""
+#####
 
 #startTime = time.time()
 
 def payload_dict(H, A, EC, In, MA, OM, W, Epoch=2460310.5, G=0.15):
+    """
+    Constructs the payload dictionaries needed for JPL Horizons api.
+    
+    Parameters
+    ----------
+    H : float
+        The absolute magnitude.
+    A : float
+        The semi-major axis
+    EC : float
+        The eccentricity
+    In : float
+        The inclination wrt. ecliptic
+    MA : float
+        The mean anomoly
+    OM : float
+        the longitude of ascending node wrt. ecliptic
+    W : float
+        Argument of perihelion wrt. ecliptic
+    Epoch : float
+        The Julian date number of the epoch. Standard is 2460310.5, i.e. 2024-Jan-01
+    G : float
+        The magnitude of slope. Standard is .15
+
+
+    Returns
+    -------
+    payload : dictionary
+        Part of the dictionary needed for JPL Horizons api.
+    
+    """
     payload = {
         "H": f"'{H}'", #Absolute magnitude
         "A": f"'{A}'", #Semi-major axis
@@ -54,6 +87,22 @@ def arg_of_perihelion(num_lines):
     return arg_peri
 
 def get_orbital_stats(txtname):
+    """
+    Reads the output file from Neomod2, which gives four of the needed nine elements.
+    
+    Parameters
+    ----------
+    txtname : str
+        The name of the outputfile from Neomod2
+
+    Returns
+    -------
+    orbit_stats : tuple
+        A tuple of the four elements from Neomod2 (i.e. H, A, EC, IN), the mean anomoly, the
+        longitude of the ascending node, the argument of the perihelion, the epoch and the
+        magnitude of slope. I.e a tuple looking like (H, A, EC, IN, MA, OM, W, Epoch, G)
+    
+    """
     #Counts the number of lines in txtname
     with open(txtname+".txt", "r+b") as f:
         num_lines = sum(1 for _ in f)
@@ -80,11 +129,29 @@ def get_orbital_stats(txtname):
     return orbit_stats
 
 def flatten(forrest):
+    # Flattens the given list.
     return [leaf for tree in forrest for leaf in tree]
     #return list(itertools.chain.from_iterable(forrest))
     #Flattens a list, i.e. un-nesting a list.
 
 def payload_generator(txtname):
+    """
+    Generates a list of tuples, where the tuples have a length 2. The first entry in 
+    the tuple is the payload dictionay and the second is an identification number.
+    Moreover, it stores this list in a file called payloads.txt for safekeeping.
+    
+    Parameters
+    ----------
+    txtname : str
+        The name of the outputfile from Neomod2
+
+    Returns
+    -------
+    payload_list : List
+        A list of tuples, where the tuples have a length 2. The first entry in 
+        the tuple is the payload dictionay and the second is an identification number.
+    
+    """
     payload_list = []
     orbit_stats = get_orbital_stats(txtname)
     for i in range(0,len(orbit_stats),1):
@@ -112,8 +179,10 @@ def pay_gen_lock(txtname, lock):
     return lock_payloads
 
 
+##################################### For testing
 #get_orbital_stats("output_file-2")
 #print(get_orbital_stats("output_file-2"))
 #payload_generator("output_file_1000000")
 
 #print(f"\nScript took {time.time() - startTime} seconds to run.")  # print elapsed time
+#####################################
