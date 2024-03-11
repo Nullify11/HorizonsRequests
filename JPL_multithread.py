@@ -8,7 +8,7 @@ Created on Thu Feb 29 18:08:03 2024
 import time
 import requests
 from concurrent.futures import ThreadPoolExecutor
-import payload_Gen as pg
+import payload_gen as pg
 import os
 
 # Files to keep track of which payloads came through succesfully and which do not.
@@ -136,8 +136,3 @@ def execute_tasks(num_requests, num_workers):
     elapsed_time = end_time - start_time
     print(f'Elapsed Time: {elapsed_time}')
 
-
-def create_responses_dir():
-    path = 'responses'
-    if not os.path.exists(path):
-        os.makedirs(path)

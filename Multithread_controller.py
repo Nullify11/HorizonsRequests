@@ -5,8 +5,9 @@
 
 import time
 import multithread_JPL as jp
-import Filter_responses as fi
-import payload_Gen as pg
+import filter_responses as fi
+import payload_gen as pg
+import threading
 
 
 def reset():
@@ -18,7 +19,7 @@ def reset():
     with open("errors_response.txt","w") as f:
         pass
 
-def controller(num_requests,num_workers,boundary,payload_file):
+def controller(num_requests, num_workers, boundary, payload_file):
     """
     Controls the program. Runs the "user interface", generates the payloads needed,
     starts the threads, and filters the responses. And it times how long it takes for all
@@ -74,10 +75,11 @@ def controller(num_requests,num_workers,boundary,payload_file):
     # Actually requesting JPL Horizons
     time_of_start = time.time()
     print("Makes payloads.")
-    payloads = pg.payload_generator(payload_file)
+    lock = threading.Lock()
+    payloads = pg.pay_gen_lock(payload_file, lock)
     print("Starts threads (The number k constitutes to the number of recursive threading).")
     
-    jp.retry_requests(num_requests,num_workers,payloads,boundary)
+    jp.retry_requests(num_requests, num_workers, payloads, boundary)
     
     time_of_end = time.time()
     print("*"*45)

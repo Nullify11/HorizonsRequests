@@ -1,7 +1,7 @@
-import payload_Gen as pg
-import JPL_multithread as jpl
-import threading
+import payload_gen as pg
+import multithread_controller as controller
 
-lock = threading.Lock()
+start_time, end_time = controller(100,5,10,"output_file_100")
 
-print(pg.pay_gen_lock('output_file_100', lock))
+elapsed_time = end_time - start_time
+print(f'Total elapsed Time: {round(elapsed_time/60,5)} minutes or {round(elapsed_time/(60*60),5)} hours.')

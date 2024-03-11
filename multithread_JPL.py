@@ -8,7 +8,8 @@ Created on Thu Feb 29 18:08:03 2024
 import time
 import requests
 from concurrent.futures import ThreadPoolExecutor
-import payload_Gen as pg
+import payload_gen as pg
+import os
 
 
 ###################################### For testing
@@ -65,13 +66,12 @@ def get_response(payload):
         file_path = f"response{payload[1]}.txt"
         with open(file_path, "w") as outfile:
             outfile.write(response.text)
-        with open("success_response.txt", "a") as file:
-            file.write(f"{payload[1]} ")
-    else:
-        with open("errors_response.txt", "a") as file:
-            file.write(f"{payload[1]} ")
+        # payload[2] contains an instance of a lock
+        with payload[2]:
+            with open("success_response.txt", "a") as file:
+                file.write(f"{payload[1]} ")
 
-def correct_errors(retry,payloads):
+def correct_errors(retry, payloads):
     """
     Sends an API request to JPL horizons for all failed requests and saves the response as a text file
     
@@ -118,7 +118,7 @@ def correct_errors(retry,payloads):
                     file.write(f"{payloads[i][1]} ")
     return print("All done!")
 
-def thread_forge(retry,num_workers,payloads):
+def thread_forge(retry, num_workers, payloads):
     """
     Handles the threads
     
@@ -144,7 +144,7 @@ def thread_forge(retry,num_workers,payloads):
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         executor.map(get_response, [payloads[i] for i in retry])
 
-def retry_requests(num_requests,num_workers,payloads,boundary):
+def retry_requests(num_requests, num_workers, payloads, boundary):
     """
     A psedo-recursive function which runs the thread_forge function with the given retry
     list, until the number of needed requests is reached or below a boundary value.
@@ -186,10 +186,15 @@ def retry_requests(num_requests,num_workers,payloads,boundary):
         # If the list is empty, all request went through succesfully
         if not retry:
             return print("All done!")
-        thread_forge(retry,num_workers,payloads)
+        thread_forge(retry, num_workers, payloads)
     print("Done with threads")
-    correct_errors(retry,payloads)
+    correct_errors(retry, payloads)
 
+
+def create_responses_dir():
+    path = 'responses'
+    if not os.path.exists(path):
+        os.makedirs(path)
 ###################################################
 # For testing
 #start_time = time.time()
