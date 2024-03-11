@@ -190,66 +190,6 @@ def retry_requests(num_requests,num_workers,payloads,boundary):
     print("Done with threads")
     correct_errors(retry,payloads)
 
-def magnus(num_requests, num_workers, payloads, boundary):
-    """
-    The server gives back approximately half of all requests sent with threads above three.
-    So, if one sends in more requests we may reach the intended number of requests faster.
-    
-    This function first runs 1.5 times the number of requests the user wants and continues,
-    after the first threading, by using the same structure as the retry_requests, just for
-    another retry list.
-    
-    Parameters
-    ----------
-    num_requests : Int
-        Number of requests the user wants. I.e. the number of simulated asteroids the user
-        will recieve.
-    
-    num_workers : Int
-        The number of maximum threads at one time.
-    
-    payloads : List
-        Payloads is a list of tuples which contains all the payloads and their identicators.
-        Each tuple contains the payload as its first element and
-        a unique identifier for its second element.
-    
-    boundary : Int or float
-        The number of missing requests for which the program will stop using threads and
-        "fill the holes" one by one.
-
-    Returns
-    -------
-    "All done!" if the list retry is empty
-    
-    """
-    idea = [i for i in range(int(num_requests*1.5))]
-    thread_forge(idea,num_workers,payloads)
-    
-    with open("success_response.txt","r") as f:
-        content = f.readline().split()
-        missing = num_requests-len(content)
-    print(f"Missing {missing} entries after first threading.")
-    if missing < 0:
-        return print("All done!")
-    with open("errors_response.txt","r") as f:
-        content = list(f.readline().split())
-        retry = [int(i) for i in content[:missing]]
-    k=0
-    while len(retry) > boundary:
-        k +=1
-        print("k:",k)
-        with open("success_response.txt","r") as f:
-            succes_content = list(f.readline().split())
-        succes_content = [int(i) for i in succes_content]
-        retry = [item for item in retry if item not in succes_content]
-        if not retry:
-            return print("All done!")
-        thread_forge(retry,num_workers,payloads)
-    print("Done with threads")
-    correct_errors(retry,payloads)
-
-
-
 ###################################################
 # For testing
 #start_time = time.time()

@@ -77,12 +77,7 @@ def controller(num_requests,num_workers,boundary,payload_file):
     payloads = pg.payload_generator(payload_file)
     print("Starts threads (The number k constitutes to the number of recursive threading).")
     
-    #jp.retry_requests(num_requests,num_workers,payloads,boundary)
-    
-    if ask_reset.lower() in ["n","no"]:
-        jp.magnus(num_requests, num_workers, payloads, boundary)
-    else:
-        jp.retry_requests(num_requests,num_workers,payloads,boundary)
+    jp.retry_requests(num_requests,num_workers,payloads,boundary)
     
     time_of_end = time.time()
     print("*"*45)
