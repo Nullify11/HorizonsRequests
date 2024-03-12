@@ -63,7 +63,7 @@ def get_response(payload):
     # we do not write the file, but instead write the indicator in another file.
     
     if "API VERSION" in response.text[:11]:
-        file_path = f"response{payload[1]}.txt"
+        file_path = f"responses/response{payload[1]}.txt"
         with open(file_path, "w") as outfile:
             outfile.write(response.text)
         # payload[2] contains an instance of a lock
@@ -103,7 +103,7 @@ def correct_errors(retry, payloads):
             with open("total_errors.txt","a") as file:
                 file.write(f"{payloads[i][1]} ")
         else:
-            file_path = f"response{payloads[i][1]}.txt"
+            file_path = f"responses/response{payloads[i][1]}.txt"
             with open(file_path, "w") as outfile:
                 outfile.write(response.text)
             # Due to how python handles threads opening and closing succes_response
@@ -113,7 +113,8 @@ def correct_errors(retry, payloads):
             # out the .txt file anyway.
             with open("success_response.txt", "r+") as file:
                 if str(payloads[i][1]) in list(file.readline().split()):
-                    print(payloads[i][1],"Already in success_response")
+                    #print(payloads[i][1],"Already in success_response")
+                    pass
                 else:
                     file.write(f"{payloads[i][1]} ")
     return print("All done!")
@@ -144,7 +145,7 @@ def thread_forge(retry, num_workers, payloads):
     with ThreadPoolExecutor(max_workers=num_workers) as executor:
         executor.map(get_response, [payloads[i] for i in retry])
 
-def retry_requests(num_requests, num_workers, payloads, boundary):
+def retry_requests(num_requests, num_workers, payloads, boundary, start_at=0):
     """
     A psedo-recursive function which runs the thread_forge function with the given retry
     list, until the number of needed requests is reached or below a boundary value.
@@ -173,7 +174,7 @@ def retry_requests(num_requests, num_workers, payloads, boundary):
     
     """
     
-    retry = [j for j in range(num_requests)]
+    retry = [j+start_at for j in range(num_requests)]
 
     k=0
     while len(retry) > boundary:
@@ -190,11 +191,11 @@ def retry_requests(num_requests, num_workers, payloads, boundary):
     print("Done with threads")
     correct_errors(retry, payloads)
 
-
 def create_responses_dir():
     path = 'responses'
     if not os.path.exists(path):
         os.makedirs(path)
+
 ###################################################
 # For testing
 #start_time = time.time()

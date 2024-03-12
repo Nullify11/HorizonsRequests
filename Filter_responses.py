@@ -27,7 +27,7 @@ def CAEarth(txtname,tolerance=4.2635*10**(-5)):
     The integer counts how many closed approaches the asteroids have collectivly.
     
     """
-    file = open(txtname+".txt", "r")
+    file = open("responses/"+txtname+".txt", "r")
     lis=[]
     while True:
         content = file.readline()
@@ -81,14 +81,11 @@ def filter(txtname,tolerance=1*10**(-4)):
     with open("success_response.txt") as f:
         succes_content = list(f.readline().split())
     succes_content = [int(i) for i in succes_content]
+    CAs = 0
     for i in succes_content:
         impact, nr_CA = CAEarth(txtname+str(i),tolerance)
+        CAs = CAs + nr_CA
         d[txtname+str(i)] = impact
-    return d, nr_CA
+    return d, CAs
 
-#print(sum(filter("response").values())) # For testing
-
-
-
-
-
+#print(sum(filter("response")[0].values()),filter("response")[1]) # For testing

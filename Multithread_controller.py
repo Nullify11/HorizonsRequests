@@ -7,7 +7,6 @@ import time
 import multithread_JPL as jp
 import filter_responses as fi
 import payload_gen as pg
-import threading
 
 
 def reset():
@@ -19,7 +18,7 @@ def reset():
     with open("errors_response.txt","w") as f:
         pass
 
-def controller(num_requests, num_workers, boundary, payload_file):
+def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     """
     Controls the program. Runs the "user interface", generates the payloads needed,
     starts the threads, and filters the responses. And it times how long it takes for all
@@ -49,6 +48,8 @@ def controller(num_requests, num_workers, boundary, payload_file):
         time_of_end : float
             The time when the program is done making requests to JPL Horizons.
     """
+    
+    jp.create_responses_dir()
     ### <User interface>
     print("*"*45)
     with open("success_response.txt","r") as f:
@@ -66,7 +67,7 @@ def controller(num_requests, num_workers, boundary, payload_file):
         else:
             print("Please enter valid response.")
     print(f"Will make {num_requests} requests with {num_workers} threads and a boundary value of {boundary}.\
-        \nThis will take approximately {round((1.37*boundary+num_requests/1.7)/60,8)} minutes or {round((1.37*boundary+num_requests/2)/(60*60),8)} hours.")
+        \nThis will take approximately {round((1.37*boundary+num_requests/1.7)/60,5)} minutes or {round((1.37*boundary+num_requests/2)/(60*60),5)} hours.")
     print("*"*45)
     input("Press enter to continue ")
     print("*"*45)
@@ -75,11 +76,10 @@ def controller(num_requests, num_workers, boundary, payload_file):
     # Actually requesting JPL Horizons
     time_of_start = time.time()
     print("Makes payloads.")
-    lock = threading.Lock()
-    payloads = pg.pay_gen_lock(payload_file, lock)
+    payloads = pg.payload_generator(payload_file)
     print("Starts threads (The number k constitutes to the number of recursive threading).")
     
-    jp.retry_requests(num_requests, num_workers, payloads, boundary)
+    jp.retry_requests(num_requests, num_workers, payloads, boundary, start_at)
     
     time_of_end = time.time()
     print("*"*45)
@@ -101,9 +101,9 @@ def controller(num_requests, num_workers, boundary, payload_file):
 
 ########### Control environment
 
-start_time, end_time = controller(100,5,10,"output_file_10000")
+#start_time, end_time = controller(100, 5, 10, "output_file_10000", 0)
 
 ###########
 
-elapsed_time = end_time - start_time
-print(f'Total elapsed Time: {round(elapsed_time/60,5)} minutes or {round(elapsed_time/(60*60),5)} hours.')
+#elapsed_time = end_time - start_time
+#print(f'Total elapsed Time: {round(elapsed_time/60,5)} minutes or {round(elapsed_time/(60*60),5)} hours.')
