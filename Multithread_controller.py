@@ -105,9 +105,9 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
 
 ########### Control environment
 
-start_time, end_time = controller(163667, 5, 10, "output_file_1000000", 3000)
+#start_time, end_time = controller(163667, 5, 10, "output_file_1000000", 3000)
 
 ###########
 
-elapsed_time = end_time - start_time
-print(f'Total elapsed Time: {round(elapsed_time/60,5)} minutes or {round(elapsed_time/(60*60),5)} hours.')
+#elapsed_time = end_time - start_time
+#print(f'Total elapsed Time: {round(elapsed_time/60,5)} minutes or {round(elapsed_time/(60*60),5)} hours.')
