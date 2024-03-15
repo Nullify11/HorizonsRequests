@@ -90,7 +90,7 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     while True:
         ask_impacts =input("Run all number of impacts? [y/n]: ") ## Tjekker automatisk hvis den bliver færdig i løbet af natten
         if ask_impacts.lower() in ["y","yes"]:
-            d, nr_CA = fi.filter_all("response")
+            d, nr_CA = fi.filter_all("response",0)
             print("Nr. of impacts:", sum(d.values()))
             print("Nr. of CA with Earth:", nr_CA)
             break

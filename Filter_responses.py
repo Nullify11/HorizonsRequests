@@ -89,7 +89,7 @@ def filter(txtname,tolerance=1*10**(-4)):
         d[txtname+str(i)] = impact
     return d, CAs
 
-def filter_all(txtname, start_at, tolerance=1*10**(-4)):
+def filter_all(txtname, start_at=0, tolerance=1*10**(-4)):
     d = dict()
     no_responses = len(os.listdir("responses/"))
     succes_content = [int(i) for i in range(start_at, no_responses, 1)]
