@@ -7,7 +7,7 @@ import time
 import multithread_JPL as jp
 import filter_responses as fi
 import payload_gen as pg
-
+import threading
 
 def reset():
     # Resets the succes_response, errors_response, and total_errors files.
@@ -51,7 +51,7 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     
     jp.create_responses_dir()
     ### <User interface>
-    print("*"*45)
+    print("*"*50)
     with open("success_response.txt","r") as f:
         previous_success = len(f.readline().split())
     while True:
@@ -68,15 +68,17 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
             print("Please enter valid response.")
     print(f"Will make {num_requests} requests with {num_workers} threads and a boundary value of {boundary}.\
         \nThis will take approximately {round((1.37*boundary+num_requests/1.7)/60,5)} minutes or {round((1.37*boundary+num_requests/2)/(60*60),5)} hours.")
-    print("*"*45)
+    print("*"*50)
     input("Press enter to continue ")
-    print("*"*45)
+    print("*"*50)
     ### <\User interface>
     
     # Actually requesting JPL Horizons
     time_of_start = time.time()
     print("Makes payloads.")
-    payloads = pg.payload_generator(payload_file)
+    #payloads = pg.payload_generator(payload_file) ### No lock
+    payloads = pg.pay_gen_lock(payload_file, threading.Lock())
+    
     print("Starts threads (The number k constitutes to the number of recursive threading).")
     
     jp.retry_requests(num_requests, num_workers, payloads, boundary, start_at)
@@ -86,14 +88,16 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     
     # Filter responses
     while True:
-        ask_impacts =input("Run number of impacts? [y/n]: ")
+        ask_impacts =input("Run all number of impacts? [y/n]: ") ## Tjekker automatisk hvis den bliver færdig i løbet af natten
         if ask_impacts.lower() in ["y","yes"]:
-            d, nr_CA = fi.filter("response")
+            d, nr_CA = fi.filter_all("response")
             print("Nr. of impacts:", sum(d.values()))
             print("Nr. of CA with Earth:", nr_CA)
             break
         elif ask_impacts.lower() in ["n","no"]:
-            break
+            d, nr_CA = fi.filter("response")
+            print("Nr. of impacts:", sum(d.values()))
+            print("Nr. of CA with Earth:", nr_CA)
         else:
             print("Please enter valid response.")
     return time_of_start, time_of_end
@@ -101,9 +105,9 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
 
 ########### Control environment
 
-#start_time, end_time = controller(100, 5, 10, "output_file_10000", 0)
+start_time, end_time = controller(163667, 5, 10, "output_file_1000000", 3000)
 
 ###########
 
-#elapsed_time = end_time - start_time
-#print(f'Total elapsed Time: {round(elapsed_time/60,5)} minutes or {round(elapsed_time/(60*60),5)} hours.')
+elapsed_time = end_time - start_time
+print(f'Total elapsed Time: {round(elapsed_time/60,5)} minutes or {round(elapsed_time/(60*60),5)} hours.')

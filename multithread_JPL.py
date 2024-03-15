@@ -10,7 +10,8 @@ import requests
 from concurrent.futures import ThreadPoolExecutor
 import payload_gen as pg
 import os
-
+import itertools
+import sys
 
 ###################################### For testing
 # Files to keep track of which payloads came through succesfully and which do not.
@@ -40,6 +41,7 @@ setup = {
     #"QUANTITIES": "'1,9'",    #20,23,24,29'",  Only relevant for observer EPHEM_TYPE
 }
 
+spinner = itertools.cycle(['-', '/', '|', '\\'])
 def get_response(payload):
     """
     Sends an API request to JPL horizons and saves the response as a text file
@@ -55,6 +57,7 @@ def get_response(payload):
     None.
 
     """
+    
     response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payload[0])
     
     # All correct data starts by listing the API version, so we check if gives this response.
@@ -67,9 +70,12 @@ def get_response(payload):
         with open(file_path, "w") as outfile:
             outfile.write(response.text)
         # payload[2] contains an instance of a lock
-        with payload[2]:
+        #with payload[2]:
             with open("success_response.txt", "a") as file:
                 file.write(f"{payload[1]} ")
+    sys.stdout.write(next(spinner))  # write the next character
+    sys.stdout.flush()                      # flush stdout buffer (actual character display)
+    sys.stdout.write('\b')                 # erase the last written char
 
 def correct_errors(retry, payloads):
     """
@@ -117,6 +123,9 @@ def correct_errors(retry, payloads):
                     pass
                 else:
                     file.write(f"{payloads[i][1]} ")
+        sys.stdout.write(next(spinner))  # write the next character
+        sys.stdout.flush()                      # flush stdout buffer (actual character display)
+        sys.stdout.write('\b')                 # erase the last written char
     return print("All done!")
 
 def thread_forge(retry, num_workers, payloads):
@@ -182,6 +191,7 @@ def retry_requests(num_requests, num_workers, payloads, boundary, start_at=0):
         print("k:",k)
         with open("success_response.txt","r") as f:
             content = f.readline().split()
+        print("Percent done:",f"{round((len(content)/num_requests)*100,4)}%")
         content = [int(i) for i in content]
         retry = [item for item in retry if item not in content]
         # If the list is empty, all request went through succesfully

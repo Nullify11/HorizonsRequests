@@ -2,6 +2,7 @@
 @author: Kasper
 Filters responses from JPL Horizons
 """
+import os
 
 def CAEarth(txtname,tolerance=4.2635*10**(-5)):
     """
@@ -76,11 +77,22 @@ def filter(txtname,tolerance=1*10**(-4)):
     
     """
     d = dict()
-    # As the function magnus in multithread_JPL may skip some payloads as the response for
+    # As multithread_JPL may skip some payloads as the response for
     # those may not be valid, we read the success_response file and iterate over these.
     with open("success_response.txt") as f:
         succes_content = list(f.readline().split())
     succes_content = [int(i) for i in succes_content]
+    CAs = 0
+    for i in succes_content:
+        impact, nr_CA = CAEarth(txtname+str(i),tolerance)
+        CAs = CAs + nr_CA
+        d[txtname+str(i)] = impact
+    return d, CAs
+
+def filter_all(txtname, start_at, tolerance=1*10**(-4)):
+    d = dict()
+    no_responses = len(os.listdir("responses/"))
+    succes_content = [int(i) for i in range(start_at, no_responses, 1)]
     CAs = 0
     for i in succes_content:
         impact, nr_CA = CAEarth(txtname+str(i),tolerance)
