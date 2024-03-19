@@ -8,6 +8,7 @@ import multithread_JPL as jp
 import filter_responses as fi
 import payload_gen as pg
 import threading
+import numpy as np
 
 def reset():
     # Resets the succes_response, errors_response, and total_errors files.
@@ -60,9 +61,18 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
         if ask_reset.lower() in ["n","no"]:
             reset()
             print("Success responses and total errors has been reset.")
+            with open("payload_seed.txt","w") as file:
+                file.write(np.random.seed())
+            print("Making new payloads.")
+            payloads = pg.pay_gen_lock(payload_file, threading.Lock())
             break
         elif ask_reset.lower() in ["y","yes"]:
-            print("Will continue from last threading.")
+            print("Will continue from last session with the same payloads.")
+            with open("payload_seed.txt","r") as file:
+                prev_seed = float(file.readline())
+            np.random.seed(prev_seed)
+            print("Making previous payloads.")
+            payloads = pg.pay_gen_lock(payload_file, threading.Lock())
             break
         else:
             print("Please enter valid response.")
@@ -75,9 +85,6 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     
     # Actually requesting JPL Horizons
     time_of_start = time.time()
-    print("Makes payloads.")
-    #payloads = pg.payload_generator(payload_file) ### No lock
-    payloads = pg.pay_gen_lock(payload_file, threading.Lock())
     
     print("Starts threads (The number k constitutes to the number of recursive threading).")
     
@@ -87,19 +94,10 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     print("*"*45)
     
     # Filter responses
-    while True:
-        ask_impacts =input("Run all number of impacts? [y/n]: ") ## Tjekker automatisk hvis den bliver færdig i løbet af natten
-        if ask_impacts.lower() in ["y","yes"]:
-            d, nr_CA = fi.filter_all("response",0)
-            print("Nr. of impacts:", sum(d.values()))
-            print("Nr. of CA with Earth:", nr_CA)
-            break
-        elif ask_impacts.lower() in ["n","no"]:
-            d, nr_CA = fi.filter("response")
-            print("Nr. of impacts:", sum(d.values()))
-            print("Nr. of CA with Earth:", nr_CA)
-        else:
-            print("Please enter valid response.")
+    d, nr_CA = fi.filter_all("response",start_at)
+    print("Nr. of impacts:", sum(d.values()))
+    print("Nr. of CA with Earth:", nr_CA)
+    fi.ast_impact(d, payloads)
     return time_of_start, time_of_end
 
 
