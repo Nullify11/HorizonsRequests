@@ -94,9 +94,10 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     print("*"*45)
     
     # Filter responses
-    d, nr_CA = fi.filter_all("response",start_at)
+    d, nr_CA, unique_CA_asteroids = fi.filter_all("response",start_at)
     print("Nr. of impacts:", sum(d.values()))
     print("Nr. of CA with Earth:", nr_CA)
+    print("Nr. of unique asteroids with a CA with Earth:", unique_CA_asteroids)
     fi.ast_impact(d, payloads)
     return time_of_start, time_of_end
 
