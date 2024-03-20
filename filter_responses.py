@@ -207,7 +207,6 @@ def ast_impact(impact_dict, payloads):
         response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payloads[i][0])
         print(f"NEO {i} used the API url:\n", response.url)
 
-
 ################################################ For testing
 #a, b, c = filter_all("response",0)
 #print(sum(a.values()),b, c) 
