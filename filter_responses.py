@@ -160,8 +160,5 @@ def ast_impact(d, payloads):
         response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payloads[i][0])
         print(f"NEO {i} used the API url:\n", response.url)
 
-a, b = filter_all("response",166667)
-print(sum(a.values()),b) # For testing
-ast_impact(a,0)
 # 0 159933, for 0-166667
 # 0 159487, for 333333-499998
