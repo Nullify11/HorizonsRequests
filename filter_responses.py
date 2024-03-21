@@ -86,7 +86,7 @@ def impact_Earth(CA_list, iden, tolerance, pause = False):
     for i in range(0,len(CA_list),1):
         relV = float(CA_list[i][43:49])*1000 # m/s
         grav_radius = ((2*gravitational_constant*mass_of_Earth)/(relV**2))*6.6845871226706*10**(-12) # AU
-        # The index [33:41] corrosponds to the number of characters in the line from the
+        # The index [33:41] corresponds to the number of characters in the line from the
         # response, where the CA distance is.
         if float(CA_list[i][33:41]) < 4.2635*10**(-5)+grav_radius+tolerance:
             if pause == True:
@@ -181,7 +181,7 @@ def ast_impact(impact_dict, payloads):
     
     payloads : list
         A list of tuples, where the tuples have a length 3. The first entry in 
-        the tuple is the payload dictionay, the second is an identification number, and
+        the tuple is the payload dictionary, the second is an identification number, and
         the third being a thread lock. Only the two first are used here.
 
     Returns

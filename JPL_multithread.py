@@ -4,6 +4,8 @@ Created on Thu Feb 29 18:08:03 2024
 
 @author: chral
 """
+# you have a multithread_JPL.py and a JPL_multithread.py 
+# please rename one to prevent confusion. -CN (you can delete this comment once you've seen it)
 
 import time
 import requests

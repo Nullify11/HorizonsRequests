@@ -35,7 +35,7 @@ def payload_dict(H, A, EC, In, MA, OM, W, Epoch=2460310.5, G=0.15):
     H : float
         The absolute magnitude.
     A : float
-        The semi-major axis
+        The semi-major axis in AU
     EC : float
         The eccentricity
     In : float
@@ -43,9 +43,9 @@ def payload_dict(H, A, EC, In, MA, OM, W, Epoch=2460310.5, G=0.15):
     MA : float
         The mean anomoly
     OM : float
-        the longitude of ascending node wrt. ecliptic
+        the longitude of ascending node wrt. ecliptic, degrees
     W : float
-        Argument of perihelion wrt. ecliptic
+        Argument of perihelion wrt. ecliptic, degrees
     Epoch : float
         The Julian date number of the epoch. Standard is 2460310.5, i.e. 2024-Jan-01
     G : float
@@ -77,15 +77,17 @@ def mean_anomaly(num_lines):
     return mean_anom
 
 def long_of_ascending_node(num_lines):
-    #Generates mean anomaly (MA) as a random number in [0,360)
+    #Generates Longitude of ascending node wrt. ecliptic as a random number in [0,360)
     long_asc_node = np.random.uniform(0,360,num_lines)
     return long_asc_node
 
 def arg_of_perihelion(num_lines):
-    #Generates mean anomaly (MA) as a random number in [0,360)
+    #Generates perihelion as a random number in [0,360)
     arg_peri = np.random.uniform(0,360,num_lines)
     return arg_peri
 
+# orbital_elements might be more clear than orbital_stats,
+# both in this function and in the variable names elsewhere. -CN
 def get_orbital_stats(txtname):
     """
     Reads the output file from Neomod2, which gives four of the needed nine elements.
@@ -126,7 +128,7 @@ def get_orbital_stats(txtname):
                 break
             i+=1
     orbit_stats.pop(-1)
-    return orbit_stats
+    return orbit_stats 
 
 def flatten(forrest):
     # Flattens the given list.

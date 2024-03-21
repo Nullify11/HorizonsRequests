@@ -4,7 +4,8 @@ Created on Thu Feb 29 18:08:03 2024
 
 @author: chral
 """
-
+# you have a multithread_JPL.py and a JPL_multithread.py 
+# please rename one to prevent confusion. -CN (you can delete this comment once you've seen it)
 import time
 import requests
 from concurrent.futures import ThreadPoolExecutor
@@ -112,7 +113,7 @@ def correct_errors(retry, payloads):
             file_path = f"responses/response{payloads[i][1]}.txt"
             with open(file_path, "w") as outfile:
                 outfile.write(response.text)
-            # Due to how python handles threads opening and closing succes_response
+            # Due to how python handles threads opening and closing success_response
             # most of the files writes correctly into the file. However, every once in a
             # while it will fail to do so, so we check if it indeed is in the file, and
             # if not we write it. Just be on the safe side, we run the response and write
