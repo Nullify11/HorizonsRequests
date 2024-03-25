@@ -41,6 +41,9 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
 
     payload_file : str
         The total name of the output file from Neomod2 including .txt.
+        
+    start_at : int
+        Tells the program which response file it should start at.
     
     Returns:
     --------
@@ -63,14 +66,16 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
             reset()
             print("Success responses and total errors has been reset.")
             with open("payload_seed.txt","w") as file:
-                file.write(np.random.seed())
+                new_seed = np.random.randint(0,1000000)
+                np.random.seed(new_seed)
+                file.write(f"{new_seed}")
             print("Making new payloads.")
             payloads = pg.pay_gen_lock(payload_file, threading.Lock())
             break
         elif ask_reset.lower() in ["y","yes"]:
             print("Will continue from last session with the same payloads.")
             with open("payload_seed.txt","r") as file:
-                prev_seed = float(file.readline())
+                prev_seed = int(file.readline())
             np.random.seed(prev_seed)
             print("Making previous payloads.")
             payloads = pg.pay_gen_lock(payload_file, threading.Lock())
@@ -95,10 +100,11 @@ def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     print("*"*45)
     
     # Filter responses
-    d, nr_CA, unique_CA_asteroids = fi.filter_all("response",start_at)
+    d, nr_CA, unique_CA_asteroids, total_impact_probability = fi.filter_all("response",start_at)
     print("Nr. of impacts:", sum(d.values()))
     print("Nr. of CA with Earth:", nr_CA)
     print("Nr. of unique asteroids with a CA with Earth:", unique_CA_asteroids)
+    print("Total probability of impact:", total_impact_probability)
     fi.ast_impact(d, payloads)
     return time_of_start, time_of_end
 

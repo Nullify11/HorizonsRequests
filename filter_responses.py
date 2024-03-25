@@ -4,8 +4,11 @@ Filters responses from JPL Horizons
 """
 import os
 import requests
+import numpy as np
+import itertools
+import sys
 
-def CAEarth(txtname, tolerance=0, pause = False):
+def CAEarth(txtname, pause = False):
     """
     Looks through the created responses and notes how many close approaches to Earth each
     asteroid has, and if it impacts with the Earth.
@@ -15,12 +18,6 @@ def CAEarth(txtname, tolerance=0, pause = False):
     txtname : str
         The name of what the response files the function will look through. Must be .txt 
         files and the .txt must not be stated in txtname.
-    
-    tolerance : float
-        The added tolarance to the Earth's radius. The radius is chosen because the CA 
-        table from JPL Horizons gives the nominal closet approach to the centre of the 
-        Earth. The standard value is set to 0.
-        The unit is in AU.
 
     Returns
     -------
@@ -44,14 +41,15 @@ def CAEarth(txtname, tolerance=0, pause = False):
     # not have been an impact either.
     if not lis:
         nr_CA = 0
-        return False, nr_CA, False
+        return False, nr_CA, False, 0
     nr_CA = len(lis)
     
     iden = txtname.replace('response', '')
-    impact = impact_Earth(lis, iden, tolerance, pause)
-    return impact, nr_CA, True
+    impact = impact_Earth(lis, iden, pause)
+    impact_probability = CA_impact_probabitlity(lis)
+    return impact, nr_CA, True, impact_probability
 
-def impact_Earth(CA_list, iden, tolerance, pause = False):
+def impact_Earth(CA_list, iden, pause = False):
     """
     Looks through the created responses and notes how many close approaches to Earth each
     asteroid has, and if it impacts with the Earth.
@@ -63,12 +61,6 @@ def impact_Earth(CA_list, iden, tolerance, pause = False):
     
     iden : str, float or int
         The identification number of the particular asteroid.
-
-    tolerance : float
-        The added tolarance to the Earth's radius. The radius is chosen because the CA 
-        table from JPL Horizons gives the nominal closet approach to the centre of the 
-        Earth. The standard value is set to 0.
-        The unit is in AU.
     
     pause : bool
         A bool which lets the user see the impact result before continuing.
@@ -78,26 +70,53 @@ def impact_Earth(CA_list, iden, tolerance, pause = False):
     bool which depends on the asteroid impacting the Earth or not.
     
     """
-    #Gravitational constant and the mass of the Earth
-    gravitational_constant = 6.67*10**(-11) # N*m^2*kg^-2
-    mass_of_Earth = 5.976*10**(24) # kg
-    # The relative velocity (relV) is found at the indicies [43:49] in the string from
-    # the JPL Horizons txt file.
     for i in range(0,len(CA_list),1):
-        relV = float(CA_list[i][43:49])*1000 # m/s
-        grav_radius = ((2*gravitational_constant*mass_of_Earth)/(relV**2))*6.6845871226706*10**(-12) # AU
-        # The index [33:41] corresponds to the number of characters in the line from the
+        # The index [33:41] corrosponds to the number of characters in the line from the
         # response, where the CA distance is.
-        if float(CA_list[i][33:41]) < 4.2635*10**(-5)+grav_radius+tolerance:
+        if float(CA_list[i][33:41]) < 4.2635*10**(-5):
             if pause == True:
                 print(f"Asteroid {iden} impacted!")
-                print(f"CA distance: {CA_list[i][33:41]}\nEarth radius + gravitational capture + tolerance: {4.2635*10**(-5)+grav_radius+tolerance}", \
-                    f"\nGravitational capture: {grav_radius}\nTolerance: {tolerance}\nRelative velocity: {CA_list[i][43:49]}")
+                print(f"CA distance: {CA_list[i][33:41]}\nEarth radius: {4.2635*10**(-5)}\nRelative velocity: {CA_list[i][43:49]}")
                 input("Press enter to continue")
             return True
     return False
 
-def filter_all(txtname, start_at=0, tolerance=0):
+def CA_impact_probabitlity(CA_list):
+    """
+    Calculates the probabitilty that an asteriod impacts with the Earth on it's close
+    approach with the Earth. It does this by dividing the cross section of the Earth's
+    radius + the gravitational capture radius by the cross section of radius 0.1 AU.
+    
+    Parameters
+    ----------
+    CA_list : list
+        A list of strings of every CA in the particular file.
+
+    Returns
+    -------
+    asteroid_impact_probability : float
+        The probability that this particular asteroid impacts during one of it's CA.
+    
+    """
+    #Gravitational constant, the mass of the Earth, and the radius of the Earth
+    gravitational_constant = 6.67*10**(-11) # N*m^2*kg^-2
+    mass_of_Earth = 5.976*10**(24) # kg
+    r_Earth = 4.2635*10**(-5) # AU
+    # The relative velocity (relV) is found at the indicies [43:49] in the string from
+    # the JPL Horizons txt file.
+    asteroid_impact_probability = 0
+    for i in range(0,len(CA_list),1):
+        relV = float(CA_list[i][43:49])*1000 # m/s
+        grav_radius = ((2*gravitational_constant*mass_of_Earth)/(relV**2))*6.6845871226706*10**(-12) # AU
+        cross_section_Earth = np.pi*(r_Earth+grav_radius)**2
+        cross_section_AU = np.pi*0.1**2
+        impact_probability = cross_section_Earth/cross_section_AU
+        asteroid_impact_probability = asteroid_impact_probability + impact_probability
+    return asteroid_impact_probability
+
+
+
+def filter_all(txtname, start_at=0):
     """
     Filters the responses into which impacted with the Earth, how many close approaches
     (CA) did the asteroids collectivly have, and how many unique asteroids made a CA.
@@ -117,12 +136,6 @@ def filter_all(txtname, start_at=0, tolerance=0):
         return an error if one starts at a number such that
         the number of files in the directory + start_at exceeds the greatest response
         file number.
-    
-    tolerance : float
-        The added tolarance equal to the Earth's radius. The radius is chosen because the CA 
-        table from JPL Horizons gives the nominal closet approach to the centre of the 
-        Earth. The standard value is set to 0.
-        The unit is in AU.
 
     Returns
     -------
@@ -138,14 +151,21 @@ def filter_all(txtname, start_at=0, tolerance=0):
     succes_content = [int(i) for i in range(start_at, nr_responses+start_at, 1)]
     CAs = 0
     unique_CA_asteroids = 0
+    total_impact_probability = 0
+    # A spinner to see that the program is running as intended.
+    spinner = itertools.cycle(['-', '/', '|', '\\'])
     # We check each response file in the "responses/" directory using this script as an anchor.
     for i in succes_content:
-        print(i)
-        impact, nr_CA, did_CA = CAEarth(txtname+str(i),tolerance)
+        #print(i)
+        impact, nr_CA, did_CA, impact_probability = CAEarth(txtname+str(i))
         unique_CA_asteroids = unique_CA_asteroids + int(did_CA)
         CAs = CAs + nr_CA
+        total_impact_probability = total_impact_probability + impact_probability
         impact_dict[txtname+str(i)] = impact
-    return impact_dict, CAs, unique_CA_asteroids
+        sys.stdout.write(next(spinner))  # write the next character
+        sys.stdout.flush()                      # flush stdout buffer (actual character display)
+        sys.stdout.write('\b')                 # erase the last written char
+    return impact_dict, CAs, unique_CA_asteroids, total_impact_probability
 
 # Does it carry over from payload_gen when it is imported into multithread_controller?
 setup = {
@@ -159,10 +179,10 @@ setup = {
     "CENTER": "'500@0'", #500 for geocentric, 500@0 for Sol barycenter, 500@3 for Earth-Moon barycenter
     "START_TIME": "'JD 2458849.5'", #Y-M-D or JD xxxxx  JD 2460329. (2024-01-20)  JD 2460361. (2024-01-21)
     "STOP_TIME": "'JD 2515097.5'",
-    "STEP_SIZE": "'150y'",
+    "STEP_SIZE": "'1d'",
     #"TCA3SG_LIMIT": "'14400'",
     #"CALIM_SB": "'0.05'",
-    #"CALIM_PL": "'.1, .1, .1, .1, 1.0, 1.0, 1.0, 1.0, .1, .003'",
+    "CALIM_PL": "'0, 0, .1, 0, 0, 0, 0, 0, 0, 0'",
     #"QUANTITIES": "'1,9'",    #20,23,24,29'",  Only relevant for observer EPHEM_TYPE
 }
 
@@ -170,7 +190,7 @@ def ast_impact(impact_dict, payloads):
     """
     If and when an asteroid impacts, this function finds and presents which asteroids impacted, 
     at what distance, at what relative velocity, what the radius criteria for an impact is, the 
-    gravitational capture radius, the tolerance level, and the url for which the JPL Horizons 
+    gravitational capture radius, and the url for which the JPL Horizons 
     system calculated this particular asteroid.
     
     Parameters
@@ -208,8 +228,8 @@ def ast_impact(impact_dict, payloads):
         print(f"NEO {i} used the API url:\n", response.url)
 
 ################################################ For testing
-#a, b, c = filter_all("response",0)
-#print(sum(a.values()),b, c) 
+#a, b, c, d = filter_all("response",1000)
+#print(sum(a.values()),b, c, d) 
 #ast_impact(a,"test")
 # 0 159933 50993, for 0-166666      Kasper
 # 2 160246 51217, for 166667-333332 Carsten
