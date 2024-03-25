@@ -4,7 +4,7 @@
 """
 
 import time
-import multithread_JPL as jp
+import multithread_JPL as jp #
 import filter_responses as fi
 import payload_gen as pg
 import threading
@@ -12,12 +12,13 @@ import numpy as np
 
 def reset():
     # Resets the succes_response, errors_response, and total_errors files.
-    with open("success_response.txt","w") as f:
-        pass
-    with open("total_errors.txt","w") as f:
-        pass
-    with open("errors_response.txt","w") as f:
-        pass
+    # worked fine, but just adding in some close statements - CN (you can delete this comment once you see it)
+    f = open("success_response.txt","w")
+    f.close()
+    f = open("total_errors.txt","w") 
+    f.close()
+    f = open("errors_response.txt","w")
+    f.close()
 
 def controller(num_requests, num_workers, boundary, payload_file, start_at=0):
     """
