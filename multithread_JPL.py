@@ -35,11 +35,10 @@ setup = {
     "CENTER": "'500@0'", #500 for geocentric, 500@0 for Sol barycenter, 500@3 for Earth-Moon barycenter
     "START_TIME": "'JD 2458849.5'", #Y-M-D or JD xxxxx  JD 2460329. (2024-01-20)  JD 2460361. (2024-01-21)
     "STOP_TIME": "'JD 2515097.5'",
-    "STEP_SIZE": "'150y'",
+    "STEP_SIZE": "'1d'",
     #"TCA3SG_LIMIT": "'14400'",
     #"CALIM_SB": "'0.05'",
-    #"CALIM_PL": "'.1, .1, .1, .1, 1.0, 1.0, 1.0, 1.0, .1, .003'",
-    #"QUANTITIES": "'1,9'",    #20,23,24,29'",  Only relevant for observer EPHEM_TYPE
+    "CALIM_PL": "'0, 0, .1, 0, 0, 0, 0, 0, 0, 0'",
 }
 
 spinner = itertools.cycle(['-', '/', '|', '\\'])
