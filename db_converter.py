@@ -110,8 +110,8 @@ def retrieve_data_test(file_path, id):
 
 
 # For testing
-data = retrieve_data('responses_ONE\\response839132.txt', 839132)
-print(data)
+# data = retrieve_data('responses_ONE\\response839132.txt', 839132)
+# print(data)
 # print(sql_asteroid_fields())
 # print(sql_asteroid_values(data), type(sql_asteroid_values(data)))
 # print(sql_ca_fields())

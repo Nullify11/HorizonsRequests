@@ -6,7 +6,7 @@ import re
 hs_db = mysql.connector.connect(
   host='localhost',
   user='root',
-  password='Track_shiftclock1',
+  password='',
   database='hs_db'
 )
 
