@@ -6,3 +6,4 @@ responses
 errors_response.txt
 payloads.txt
 errors_response.txt
+db_credentials.py
