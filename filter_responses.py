@@ -160,6 +160,9 @@ def filter_all(txtname, start_at=0):
         impact, nr_CA, did_CA, impact_probability = CAEarth(txtname+str(i))
         unique_CA_asteroids = unique_CA_asteroids + int(did_CA)
         CAs = CAs + nr_CA
+        if impact_probability > 1:
+            print(i,impact_probability)
+            impact_probability = 1
         total_impact_probability = total_impact_probability + impact_probability
         impact_dict[txtname+str(i)] = impact
         sys.stdout.write(next(spinner))  # write the next character
