@@ -1,22 +1,25 @@
 import mysql.connector
 import db_converter as converter
+import db_credentials as credentials
 import os
 import re
 
 hs_db = mysql.connector.connect(
-  host='localhost',
-  user='root',
-  password='',
-  database='hs_db'
+  host = 'localhost',
+  user = 'root',
+  password = credentials.password,
+  database = 'hs_db'
 )
 
 def insert_directory(dir_path, directory_num):
+  errors = converter.detect_errors(dir_path)
   initial_index = 1000000 * directory_num
   directory = os.listdir(dir_path)
   for i in range(len(directory)):
-    id = initial_index + int(re.findall(r'\d+', directory[i])[0])
-    file_path = dir_path + '\\' + directory[i]
-    insert_item(file_path, id)
+    if directory[i] not in errors:
+      id = initial_index + int(re.findall(r'\d+', directory[i])[0])
+      file_path = dir_path + '\\' + directory[i]
+      insert_item(file_path, id)
   
   print(f'Insert for directory {dir_path} succesful!')
 
@@ -68,7 +71,40 @@ def is_in_ca(date:str, fk_asteroid_id):
   cursor.fetchall()
   return False if result == None else True
 
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\responses_ONE', 0)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\responses_TWO', 1)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\responses_THREE', 2)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\responses_FOUR', 3)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\responses_FIVE', 4)
 
-insert_directory('responses_ONE', 0)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Christina\\responses_Christina_ONE', 0)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Christina\\responses_Christina_TWO', 1)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Christina\\responses_Christina_THREE', 2)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Christina\\responses_Christina_FOUR', 3)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Christina\\responses_Christina_FIVE', 4)
+
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Carsten\\responses_Carsten_ONE', 0)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Carsten\\responses_Carsten_TWO', 1)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Carsten\\responses_Carsten_THREE', 2)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Carsten\\responses_Carsten_FOUR', 3)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Carsten\\responses_Carsten_FIVE', 4)
+
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Magnus\\responses_Magnus_ONE', 0)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Magnus\\responses_Magnus_TWO', 1)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Magnus\\responses_Magnus_THREE', 2)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Magnus\\responses_Magnus_FOUR', 3)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Magnus\\responses_Magnus_FIVE', 4)
+
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Lasse\\responses_Lasse_ONE', 0)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Lasse\\responses_Lasse_TWO', 1)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Lasse\\responses_Lasse_THREE', 2)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Lasse\\responses_Lasse_FOUR', 3)
+# insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Lasse\\responses_Lasse_FIVE', 4)
+
+insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Kasper\\responses_Kasper_ONE', 0)
+insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Kasper\\responses_Kasper_TWO', 1)
+insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Kasper\\responses_Kasper_THREE', 2)
+insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Kasper\\responses_Kasper_FOUR', 3)
+insert_directory('C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses\\Kasper\\responses_Kasper_FIVE', 4)
 
 # practice_insert('responses_THREE', 3833331)

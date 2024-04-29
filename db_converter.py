@@ -1,4 +1,5 @@
 import re
+import os
 
 def retrieve_data(file_path, id):
     data = {'id' : id}
@@ -83,33 +84,30 @@ def str_to_float(list):
     return [float(i) for i in list]
 
 
-def retrieve_data_test(file_path, id):
-    data = {'id' : id}
-    file = open(file_path, "r")
-    line = file.readline()
+def detect_errors(dir_path):
+    errors = []
+    error_found = False
+    directory = os.listdir(dir_path)
+    for i in range(len(directory)):
+        file_path = dir_path + '\\' + directory[i]
+        with open(file_path, 'r') as response:
+            text = response.read()
+            if 'error' in text:
+                errors.append(directory[i])
+                print(f'{directory[i]} contains an error')
+                error_found = True
 
-    numeric_const_pattern = r'[-+]? (?: (?: \d* \. \d+ ) | (?: \d+ \.? ) )(?: [Ee] [+-]? \d+ ) ?'
-    rx_numbers = re.compile(numeric_const_pattern, re.VERBOSE)
+    if error_found == False:
+        print(f'no errors where found in {dir_path}')
 
-    # Finds the line where the word EPOCH first occurs in file
-    while 'EPOCH' not in line:
-        line = file.readline()
-    
-    # Appends relevant data to the data dictionary
-    data.update(create_dictionary(['ec', 'qr', 'tp'], rx_numbers.findall(file.readline())))
-    data.update(create_dictionary(['om', 'w', 'in'], rx_numbers.findall(file.readline())))
-    file.readline()
-    data.update(create_dictionary(['x', 'y', 'z'], rx_numbers.findall(file.readline())))
-    data.update(create_dictionary(['vx', 'vy', 'vz'], rx_numbers.findall(file.readline())))
-
-    # data.update(dict_convert(list_convert(file.readline())))
-    # data.update(dict_convert(list_convert(file.readline())))
-
-    file.close()
-    return data
+    return errors
 
 
 # For testing
+# dir_prefix = 'C:\\Users\\chral\\OneDrive\\Skrivebord\\all_responses'
+# dir_path = dir_prefix + '\\responses_FIVE'
+# detect_errors(dir_path)
+
 # data = retrieve_data('responses_ONE\\response839132.txt', 839132)
 # print(data)
 # print(sql_asteroid_fields())
