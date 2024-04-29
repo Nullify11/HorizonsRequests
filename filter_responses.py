@@ -155,19 +155,21 @@ def filter_all(txtname, start_at=0):
     # A spinner to see that the program is running as intended.
     spinner = itertools.cycle(['-', '/', '|', '\\'])
     # We check each response file in the "responses/" directory using this script as an anchor.
+    above_one = []
     for i in succes_content:
-        #print(i)
         impact, nr_CA, did_CA, impact_probability = CAEarth(txtname+str(i))
         unique_CA_asteroids = unique_CA_asteroids + int(did_CA)
         CAs = CAs + nr_CA
         if impact_probability > 1:
-            print(i,impact_probability)
+            above_one.append([i,impact_probability])
             impact_probability = 1
         total_impact_probability = total_impact_probability + impact_probability
-        impact_dict[txtname+str(i)] = impact
+        if impact == True:
+            impact_dict[txtname+str(i)] = impact
         sys.stdout.write(next(spinner))  # write the next character
         sys.stdout.flush()                      # flush stdout buffer (actual character display)
         sys.stdout.write('\b')                 # erase the last written char
+    print('The following asteroids had an cumulative impact frequency above one:\n', above_one)
     return impact_dict, CAs, unique_CA_asteroids, total_impact_probability
 
 # Does it carry over from payload_gen when it is imported into multithread_controller?
@@ -212,21 +214,13 @@ def ast_impact(impact_dict, payloads):
     None
     
     """
-    while True:
-        ask = input("Should the program pause for every impact? [y/n]: ")
-        if ask.lower() in ["y","yes"]:
-            ask_pause = True
-            break
-        elif ask.lower() in ["n","no"]:
-            ask_pause = False
-            break
-        print("Please enter a valid response")
 
+    ast_pause = True
     response_keys = [key for key, val in impact_dict.items() if val == 1 or val == True]
 
     for key in response_keys:
         i = int(key.replace('response', ''))
-        CAEarth(key, pause = ask_pause)
+        CAEarth(key, pause = ast_pause)
         response = requests.get("https://ssd.jpl.nasa.gov/api/horizons.api", params= setup | payloads[i][0])
         print(f"NEO {i} used the API url:\n", response.url)
 
@@ -235,7 +229,7 @@ def ast_impact(impact_dict, payloads):
 #print(sum(a.values()),b, c, d) 
 #ast_impact(a,"test")
 # 0 159933 50993, for 0-166666      Kasper
-# 2 160246 51217, for 166667-333332 Carsten
+# 0 160246 51217, for 166667-333332 Carsten
 # 0 159487 50814, for 333333-499998 Lasse
-# 1 159932 51017, for 499999-666664 Christina
-# 3 159081 50830, for 666665-833332 Magnus
+# 0 159932 51017, for 499999-666664 Christina
+# 1 159081 50830, for 666665-833332 Magnus
