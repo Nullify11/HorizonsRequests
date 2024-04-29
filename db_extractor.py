@@ -1,5 +1,6 @@
 import mysql.connector
 import numpy as np
+import os
 
 hs_db = mysql.connector.connect(
   host='localhost',
@@ -74,8 +75,15 @@ def cumulative_freq(min_CA_dist):
             file.write(str(key),str(prob_dict[key]))
     print(f'Created cumulative frequency file for {min_CA_dist}')
 
+def create_responses_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
+
 def file_creation(min_CA_dist):
+    create_responses_dir('plotting_files')
     plotting_file(min_CA_dist)
+    
+    create_responses_dir('impact_files')
     cumulative_freq(min_CA_dist)
 
 # File creation
