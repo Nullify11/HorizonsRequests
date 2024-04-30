@@ -94,6 +94,34 @@ def cumulative_freq(min_CA_dist):
         file.write(str(slow_ast).strip('[]'))
     print(f'Created cumulative frequency file for {min_CA_dist}')
 
+def extract_no_ca():
+    cursor.execute('SELECT asteroids.id, asteroids.`ec`, asteroids.qr, asteroids.tp, asteroids.om, asteroids.w, asteroids.`in`, asteroids.h\
+                    FROM asteroids\
+                    WHERE id\
+                    NOT IN (SELECT fk_asteroid_id FROM close_approaches WHERE body = "Earth")')
+    result = cursor.fetchall()
+    with open('plotting_files/plotting_no_CA.txt', 'w') as file:
+        already_inserted = []
+        for tup in result:
+            try:
+                a = str(float(tup[2])/(1-float(tup[1])))
+            except:
+                print(tup[2],tup[1])
+                a = None
+            if tup[0] not in already_inserted:
+                file.write(str(tup).strip('()').replace(',','')+f' {a}\n')
+                already_inserted.append(tup[0])
+            if len(already_inserted) >= 2:
+                already_inserted.pop(0)
+        
+def extract_number_files():
+    cursor.execute('SELECT id FROM asteroids')
+    result = cursor.fetchall()
+    with open('plotting_files/number_files.txt', 'w') as file:
+        for tup in result:
+            file.write(str(tup).strip('()').replace(',','')+'\n')
+
+
 def create_responses_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
@@ -108,8 +136,10 @@ def file_creation(min_CA_dist):
 # File creation
 r_Earth = 4.2635*10**(-5) # AU
 
-file_creation(0.1)
-file_creation(0.01)
-file_creation(0.001)
-file_creation(0.0001)
-file_creation(r_Earth) #Kun for impacts
+#file_creation(0.1)
+#file_creation(0.01)
+#file_creation(0.001)
+#file_creation(0.0001)
+#file_creation(r_Earth) #Kun for impacts
+extract_no_ca()
+#extract_number_files()
